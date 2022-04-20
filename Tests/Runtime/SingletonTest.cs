@@ -20,14 +20,6 @@ public class SingletonTest
     private const string SCENES_FOLDER = "Scenes";
     private const string NEW_SCENE_NAME = "TestScene";
 
-    // A Test behaves as an ordinary method
-    [Test]
-    public void TestIfSingletonInstanceIsCreated()
-    {
-        Assert.NotNull(MySingleton.Instance);
-        Assert.IsInstanceOf<MySingleton>(MySingleton.Instance);
-    }
-
     // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
     // `yield return null;` to skip a frame.
     [UnityTest]
@@ -48,6 +40,7 @@ public class SingletonTest
     {
         // Use the Assert class to test conditions.
         // Use yield to skip a frame.
+
         MySingletonPersist singleton = new GameObject().AddComponent<MySingletonPersist>();
 
         var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{NEW_SCENE_NAME}");
