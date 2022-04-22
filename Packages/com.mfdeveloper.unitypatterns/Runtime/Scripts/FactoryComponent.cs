@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityPatterns.Util;
 
 namespace UnityPatterns
 {
@@ -13,14 +14,25 @@ namespace UnityPatterns
     /// </summary>
     public class FactoryComponent
     {
-
-        public static GameObject[] RootGameObjects
+        // TODO: [Refactor] Consider move this method to a "Util" scene class 
+        public static List<GameObject> GetAllRootObjects(bool onlyDontDestroy = false)
         {
-            get
+            // TODO: [Refactor] Try to remove this circular reference of "DontDestroyOnLoadManager" here
+            var rootGameObjects = new List<GameObject>(DontDestroyOnLoadManager.Instance.RootGameObjects);
+
+            if (!onlyDontDestroy)
             {
-                Scene activeScene = SceneManager.GetActiveScene();
-                return activeScene.GetRootGameObjects();
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    var scene = SceneManager.GetSceneAt(i);
+                    if (scene.rootCount > 0)
+                    {
+                        rootGameObjects.AddRange(scene.GetRootGameObjects());
+                    }
+                }
             }
+
+            return rootGameObjects;
         }
 
         /// <summary>
@@ -65,7 +77,7 @@ namespace UnityPatterns
         [SuppressMessage("Type Safety", "UNT0014:Invalid type for call to GetComponent", Justification = "<Ignored>")]
         public static IEnumerable<T> GetAll<T>(bool includeInactive = false)
         {
-            var gameObjects = RootGameObjects;
+            var gameObjects = GetAllRootObjects();
 
             IEnumerable<T> result = gameObjects.Select(gameObj =>
             {
@@ -75,6 +87,8 @@ namespace UnityPatterns
 
             return result;
         }
+
+        public static List<T> GetList<T>(bool includeInactive = false) => GetAll<T>(includeInactive).ToList();
 
         /// <summary>
         /// Find a gameObject in the scene with an attached script
