@@ -13,9 +13,16 @@ namespace UnityPatterns
     /// <typeparam name="T">Class to use as a singleton</typeparam>
     public class SingletonPersistent<T> : Singleton<T> where T : Component
     {
+        // TODO: [Refactor] Consider use an C# Attribute instead of override fields
+        protected bool destroyPreviousInstance = false;
 
         protected override void Awake()
         {
+            if (destroyPreviousInstance && _instance != null)
+            {
+                Destroy(this);
+            }
+
             base.Awake();
 
             DontDestroyOnLoad(gameObject);

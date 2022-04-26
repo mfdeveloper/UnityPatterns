@@ -10,7 +10,9 @@ or just `Singleton` class to use the same instance on the only one scene.
 ### Main use cases
 
 - Managers that should use the same instance among scripts (e.g GameManager, ScoreManager, InputManager...)
+
 - When you need use any component that depends of a Game object in the scene (e.g access `AudioSource` inside of an singleton)
+
 - When you need a Singleton with Unity messages like `Start()`, and/or access some objects that are only available after the game starts
   > (e.g Audio Middlewares, Third Party packages/libraries...)
 
@@ -48,7 +50,51 @@ public class GameManager : SingletonPersistent<GameManager> {
 }
 ```
 
-### Code templates
+## Unity: Factory Method
+
+A base Factory Method implementation for Unity. The main use case here is to use this to access a gameObject in the scene that contains a script that implements an `C#` interface:
+
+```csharp
+
+// Create a C# interface
+public interface IMyComponent
+{
+
+}
+
+// Create a MonoBehaviour script that implements the interface above, and attach it to a gameObject in the scene
+public class MyScript : MonoBehaviour, IMyComponent
+{
+
+}
+
+// Example to access the a gameObject script that implements an interface
+using System.Linq;
+using UnityEngine;
+using UnityPatterns;
+
+public class ExampleScript : MonoBehaviour
+{
+    public GameObject[] rootsFromDontDestroyOnLoad;
+    void Start()
+    {
+        IMyComponent myComponent = FactoryComponent.Get<IMyComponent>();
+
+        // (Optional) You can get the all gameObjects with a script that implements an interface
+        List<IMyComponent> myComponent = FactoryComponent.GetList<IMyComponent>();
+
+        Debug.Log($"The component is: {myComponent.GetType().Name}") // Prints: MyScript
+    }
+}
+```
+
+### Main use cases
+
+- Get singleton managers from all scenes active scenes (including `DontDestroyOnLoad` automatic scene created by Unity).
+
+- Get any **gameObject** from scenes that contains a script that implements an `C#` interface.
+
+## Code templates
 
 Under `Samples~` folder, this package share some code templates to easily create singleton classes from Unity Editor.
 

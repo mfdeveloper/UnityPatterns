@@ -1,28 +1,32 @@
 using NUnit.Framework;
 using UnityEngine;
-using UnityPatterns;
 
-public class FactoryComponentTest
+namespace UnityPatterns.Editor
 {
-
-    internal interface IMyComponent
+    public class FactoryComponentTest
     {
 
-    }
+        internal interface IMyComponent
+        {
 
-    internal class MyScriptComponent : MonoBehaviour, IMyComponent
-    {
+        }
 
-    }
+        internal class MyScript : MonoBehaviour, IMyComponent
+        {
 
-    // A Test behaves as an ordinary method
-    [Test]
-    public void FactoryComponentTestSimplePasses()
-    {
-        var _ = new GameObject().AddComponent<MyScriptComponent>();
-        var myComponent = FactoryComponent.Get<IMyComponent>();
+        }
 
-        Assert.NotNull(myComponent);
-        Assert.IsInstanceOf<MyScriptComponent>(myComponent);
+        // A Test behaves as an ordinary method
+        [Test]
+        public void TestGetScriptComponentByInterface()
+        {
+            var addedGameObj = new GameObject().AddComponent<MyScript>();
+            var myComponent = FactoryComponent.Get<IMyComponent>();
+
+            Assert.NotNull(myComponent);
+            Assert.IsInstanceOf<MyScript>(myComponent);
+
+            Object.DestroyImmediate(addedGameObj.gameObject);
+        }
     }
 }
