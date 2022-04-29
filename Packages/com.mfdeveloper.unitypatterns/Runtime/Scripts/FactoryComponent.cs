@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -14,6 +15,11 @@ namespace UnityPatterns
     /// </summary>
     public class FactoryComponent
     {
+
+        protected static Dictionary<Type, object> componentsInstances = new Dictionary<Type, object>();
+
+        public static IReadOnlyDictionary<Type, object> ComponentsInstances => componentsInstances;
+
         // TODO: [Refactor] Consider move this method to a "Util" scene class 
         public static List<GameObject> GetAllRootObjects(bool onlyDontDestroy = false)
         {
@@ -77,6 +83,15 @@ namespace UnityPatterns
         [SuppressMessage("Type Safety", "UNT0014:Invalid type for call to GetComponent", Justification = "<Ignored>")]
         public static IEnumerable<T> GetAll<T>(bool includeInactive = false)
         {
+            var genericsType = typeof(T);
+
+            if (!genericsType.IsInterface && Debug.isDebugBuild)
+            {
+                string warnMsg = $"The generic type {genericsType.Name} isn't an interface. Prefer use GetComponent() or GetComponentInChildren() to improve " +
+                    "performance to lookup by script class.";
+                Debug.LogWarning(warnMsg);
+            }
+
             var gameObjects = GetAllRootObjects();
 
             IEnumerable<T> result = gameObjects.Select(gameObj =>
@@ -94,6 +109,10 @@ namespace UnityPatterns
         /// Find a gameObject in the scene with an attached script
         /// that implements an <b>C#</b> interface
         /// </summary>
+        /// <remarks>
+        /// The component instances are stored in a "cache" to improve lookup performance,
+        /// and don't perform a new search in the scene for each call of <see cref="Get{T}(bool)"/> 
+        /// </remarks>
         /// <example>
         /// <code>
         /// using UnityEngine;
@@ -125,6 +144,24 @@ namespace UnityPatterns
         /// }
         /// </code>
         /// </example>
-        public static T Get<T>(bool includeInactive = false) => GetAll<T>(includeInactive).FirstOrDefault();
+        public static T Get<T>(bool includeInactive = false)
+        {
+            var genericsType = typeof(T);
+
+            var instance = componentsInstances.FirstOrDefault(instance => genericsType.IsInstanceOfType(instance.Value));
+            if (instance.Value != null)
+            {
+                return (T) instance.Value;
+            }
+
+            if (!componentsInstances.ContainsKey(genericsType))
+            {
+                componentsInstances.Add(genericsType, GetAll<T>(includeInactive).FirstOrDefault());
+            }
+
+            return (T) componentsInstances[genericsType];
+        }
+
+        public static bool ContainsInstance(object instance) => componentsInstances.ContainsValue(instance);
     }
 }
