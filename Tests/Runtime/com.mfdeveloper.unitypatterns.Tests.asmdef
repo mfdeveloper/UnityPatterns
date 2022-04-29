@@ -1,5 +1,5 @@
 {
-    "name": "Tests",
+    "name": "com.mfdeveloper.unitypatterns.Tests",
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",

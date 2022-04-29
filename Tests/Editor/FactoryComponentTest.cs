@@ -1,32 +1,61 @@
+using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
+using UnityPatterns;
+using UnityPatterns.Util;
 
-namespace UnityPatterns.Editor
+public class FactoryComponentTest
 {
-    public class FactoryComponentTest
+
+    MyScriptPersistent persistentObj;
+    DontDestroyOnLoadManager dontDestroyOnLoadObj;
+
+    internal interface IMyComponent
     {
 
-        internal interface IMyComponent
-        {
+    }
 
-        }
+    internal class MyScriptPersistent : SingletonPersistent<MyScriptPersistent>, IMyComponent
+    {
 
-        internal class MyScript : MonoBehaviour, IMyComponent
-        {
+    }
 
-        }
+    [SetUp]
+    public void SetUp()
+    {
+        persistentObj = new GameObject().AddComponent<MyScriptPersistent>();
+        dontDestroyOnLoadObj = new GameObject().AddComponent<DontDestroyOnLoadManager>();
+    }
 
-        // A Test behaves as an ordinary method
-        [Test]
-        public void TestGetScriptComponentByInterface()
-        {
-            var addedGameObj = new GameObject().AddComponent<MyScript>();
-            var myComponent = FactoryComponent.Get<IMyComponent>();
+    [TearDown]
+    public void TearDown()
+    {
+        Object.Destroy(persistentObj.gameObject);
+        Object.Destroy(dontDestroyOnLoadObj.gameObject);
+    }
 
-            Assert.NotNull(myComponent);
-            Assert.IsInstanceOf<MyScript>(myComponent);
+    [UnityTest]
+    public IEnumerator TestIfComponentIsOnDontDestroyOnloadScene()
+    {
 
-            Object.DestroyImmediate(addedGameObj.gameObject);
-        }
+        var rootGameObjects = FactoryComponent.GetAllRootObjects();
+
+        Assert.Greater(rootGameObjects.Count, 0);
+        Assert.Contains(persistentObj.gameObject, rootGameObjects);
+
+        yield return null;
+    }
+
+    [UnityTest]
+    public IEnumerator TestGetScriptComponentMarkedAsPersistent()
+    {
+
+        var myComponent = FactoryComponent.Get<IMyComponent>();
+
+        Assert.NotNull(myComponent);
+        Assert.IsInstanceOf<MyScriptPersistent>(myComponent);
+
+        yield return null;
     }
 }
