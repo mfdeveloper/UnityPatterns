@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityPatterns.Singleton;
 
 namespace UnityPatterns.Editor
 {
@@ -20,7 +21,7 @@ namespace UnityPatterns.Editor
         }
 
         // A Test behaves as an ordinary method
-        [Test]
+        [Test, Description("Test if a singleton instance is accessed from the static property 'Instance'")]
         public void TestIfSingletonInstanceIsCreated()
         {
             Assert.NotNull(MySingleton.Instance);

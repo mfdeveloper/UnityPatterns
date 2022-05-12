@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityPatterns
+namespace UnityPatterns.Singleton
 {
     /// <summary>
     /// Generic Singleton MonoBehaviour persistent among scenes

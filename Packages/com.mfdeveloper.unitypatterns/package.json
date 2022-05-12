@@ -1,7 +1,7 @@
 {
 	"name": "com.mfdeveloper.unitypatterns",
 	"displayName": "Unity Design Patterns",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"unity": "2017.4",
 	"description": "Unity Design Patterns based in the book: Hands-On Game Development Patterns with Unity 2019",
     "documentationUrl": "",
