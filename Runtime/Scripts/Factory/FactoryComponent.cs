@@ -1,12 +1,13 @@
 using System;
 using System.Linq;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityPatterns.Util;
 
-namespace UnityPatterns
+namespace UnityPatterns.Factory
 {
 
     /// <summary>
@@ -15,10 +16,16 @@ namespace UnityPatterns
     /// </summary>
     public class FactoryComponent
     {
-
+        // TODO: Add a FactoryComponent.Cleanup() method to remove instances that doesn't exists in the scene anymore
         protected static Dictionary<Type, object> componentsInstances = new Dictionary<Type, object>();
 
         public static IReadOnlyDictionary<Type, object> ComponentsInstances => componentsInstances;
+
+        /// <summary>
+        /// Resources folder that are the .asset files to load
+        /// <see cref="ScriptableObject"/> singletons
+        /// </summary>
+        public static string ResourcesAssetsFolder { get; set; } = "ScriptableObjects";
 
         // TODO: [Refactor] Consider move this method to a "Util" scene class 
         public static List<GameObject> GetAllRootObjects(bool onlyDontDestroy = false)
@@ -140,6 +147,12 @@ namespace UnityPatterns
         ///
         ///         // Check if the result is a instance of the script
         ///         Debug.Log(myComponent.GetType().Name); // Output: MyScriptComponent
+        ///
+        ///         // Optionally, you can get a ScriptableObject from an interface, as well
+        ///         // By default, looking for a .asset stored in: "Resources/ScriptableObjects"
+        ///         
+        ///         var myScriptable = FactoryComponent.Get<IMyScriptable>();
+        ///         myScriptable
         ///     }
         /// }
         /// </code>
@@ -148,20 +161,112 @@ namespace UnityPatterns
         {
             var genericsType = typeof(T);
 
-            var instance = componentsInstances.FirstOrDefault(instance => genericsType.IsInstanceOfType(instance.Value));
-            if (instance.Value != null)
+            var instancePair = componentsInstances.FirstOrDefault(instance => genericsType.IsInstanceOfType(instance.Value));
+
+            if (instancePair.Value != null)
             {
-                return (T) instance.Value;
+                return (T) instancePair.Value;
             }
 
             if (!componentsInstances.ContainsKey(genericsType))
             {
-                componentsInstances.Add(genericsType, GetAll<T>(includeInactive).FirstOrDefault());
+                var instance = GetAll<T>(includeInactive).FirstOrDefault();
+
+                // TODO: [Refactor] Consider move this verification to the "GetAll<>()" method
+                instance = FetchScriptableObject(genericsType, instance);
+
+                if (instance != null)
+                {
+                    VerifyFactoryCleaner(genericsType, instance);
+
+                    componentsInstances.Add(genericsType, instance);
+                }
+
             }
 
-            return (T) componentsInstances[genericsType];
+            var resultInstance = componentsInstances[genericsType];
+            return (T) resultInstance;            
         }
 
         public static bool ContainsInstance(object instance) => componentsInstances.ContainsValue(instance);
+
+        public static void Cleanup(object instance = null)
+        {
+            if (instance is null)
+            {
+                componentsInstances.Clear();
+            }
+            else
+            {
+                var component = componentsInstances.FirstOrDefault(instanceReference =>
+                {
+                    if (instance is Component instanceComp && instanceReference.Value is Component component)
+                    {
+                        return instanceComp.gameObject == component.gameObject;
+                    }
+                    else
+                    {
+                        return instance == instanceReference.Value;
+                    }
+
+                });
+
+                if (component.Value != null)
+                {
+                    componentsInstances.Remove(component.Key);
+                }
+            }
+        }
+
+        protected static T FetchScriptableObject<T>(Type genericsType, T instance)
+        {
+            if (instance is null)
+            {
+                if (genericsType.IsInterface && genericsType.Name.StartsWith("I", false, CultureInfo.CurrentCulture))
+                {
+                    // Looking for a ScriptableObject .asset
+                    // Follow the convention for interfaces, that needs to starts with "I" and the ScriptableObject name
+                    // should be the same without the "I" (e.g interface "IMyScriptable" and class should be "MyScriptable")
+                    // IAudioManager => FMODAudioManager
+                    string path = genericsType.Name.Replace("I", "");
+                    instance = (T)(object)Resources.Load(path, genericsType);
+
+                    if (instance is null)
+                    {
+                        var allAssets = Resources.LoadAll(ResourcesAssetsFolder, genericsType);
+                        instance = (T)(object)allAssets.FirstOrDefault();
+
+                        if (instance is null)
+                        {
+                            // A ScriptableObject instance that isn't bound to a .asset file
+                            instance = (T)(object)ScriptableObject.CreateInstance(path);
+                        }
+                    }
+                }
+            }
+
+            return instance;
+        }
+
+        protected static void VerifyFactoryCleaner<T>(Type genericsType, T instance)
+        {
+            Type factoryAttributeType = typeof(FactoryReferenceAttribute);
+
+            bool containsFactoryAttribute = Attribute.IsDefined(instance.GetType(), factoryAttributeType);
+            if (!containsFactoryAttribute)
+            {
+                containsFactoryAttribute = Attribute.IsDefined(genericsType, factoryAttributeType);
+            }
+
+            if (containsFactoryAttribute
+                && instance is Component component
+                && component.gameObject != null)
+            {
+                if (component.gameObject.GetComponent<FactoryCleaner>() is null)
+                {
+                    component.gameObject.AddComponent<FactoryCleaner>();
+                }
+            }
+        }
     }
 }

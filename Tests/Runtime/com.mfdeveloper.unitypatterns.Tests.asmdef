@@ -1,6 +1,6 @@
 {
     "name": "com.mfdeveloper.unitypatterns.Tests",
-    "rootNamespace": "",
+    "rootNamespace": "UnityPatterns",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",

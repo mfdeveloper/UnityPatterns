@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityPatterns.Singleton;
 
 namespace UnityPatterns.Util
 {

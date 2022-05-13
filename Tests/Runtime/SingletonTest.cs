@@ -3,60 +3,63 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using UnityPatterns;
+using UnityPatterns.Singleton;
 
-public class MySingletonPersist : SingletonPersistent<MySingletonPersist>
+namespace UnityPatterns
 {
-
-}
-
-public class SingletonTest
-{
-    internal class MySingleton : Singleton<MySingleton>
+    public class MySingletonPersist : SingletonPersistent<MySingletonPersist>
     {
 
     }
 
-    private const string SCENES_FOLDER = "Scenes";
-    private const string NEW_SCENE_NAME = "TestScene";
-
-    // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
-    // `yield return null;` to skip a frame.
-    [UnityTest]
-    public IEnumerator TestIfSingletonInstanceExistsInTheScene()
+    public class SingletonTest
     {
-        var _ = new GameObject().AddComponent<MySingleton>();
-        var singletonInScene = Object.FindObjectOfType<MySingleton>();
-        
-        Assert.IsInstanceOf<MySingleton>(singletonInScene);
-        Assert.AreSame(singletonInScene, MySingleton.Instance);
+        internal class MySingleton : Singleton<MySingleton>
+        {
 
-        yield return null;
-    }
+        }
 
-    
-    [UnityTest]
-    public IEnumerator TestSingletonShouldPersistAmongScenes()
-    {
-        // Use the Assert class to test conditions.
-        // Use yield to skip a frame.
+        private const string SCENES_FOLDER = "Scenes";
+        private const string NEW_SCENE_NAME = "TestScene";
 
-        MySingletonPersist singleton = new GameObject().AddComponent<MySingletonPersist>();
+        // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
+        // `yield return null;` to skip a frame.
+        [UnityTest, Description("Test if can get a singleton component in the scene")]
+        public IEnumerator TestIfSingletonInstanceExistsInTheScene()
+        {
+            var _ = new GameObject().AddComponent<MySingleton>();
+            var singletonInScene = Object.FindObjectOfType<MySingleton>();
 
-        var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{NEW_SCENE_NAME}");
-       
-        yield return new WaitUntil(() => asyncOp.isDone);
+            Assert.IsInstanceOf<MySingleton>(singletonInScene);
+            Assert.AreSame(singletonInScene, MySingleton.Instance);
 
-        var currentScene = SceneManager.GetActiveScene();
+            yield return null;
+        }
 
-        Assert.AreEqual(currentScene.name, NEW_SCENE_NAME);
 
-        var persistentObj = Object.FindObjectOfType<MySingletonPersist>(true);
+        [UnityTest, Description("Test if a singleton remains active after loads a new scene")]
+        public IEnumerator TestSingletonShouldPersistAmongScenes()
+        {
+            // Use the Assert class to test conditions.
+            // Use yield to skip a frame.
 
-        Assert.NotNull(persistentObj);
-        Assert.IsInstanceOf<MySingletonPersist>(persistentObj);
-        Assert.AreSame(singleton, persistentObj);
+            MySingletonPersist singleton = new GameObject().AddComponent<MySingletonPersist>();
 
-        Object.Destroy(persistentObj.gameObject);
+            var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{NEW_SCENE_NAME}");
+
+            yield return new WaitUntil(() => asyncOp.isDone);
+
+            var currentScene = SceneManager.GetActiveScene();
+
+            Assert.AreEqual(currentScene.name, NEW_SCENE_NAME);
+
+            var persistentObj = Object.FindObjectOfType<MySingletonPersist>(true);
+
+            Assert.NotNull(persistentObj);
+            Assert.IsInstanceOf<MySingletonPersist>(persistentObj);
+            Assert.AreSame(singleton, persistentObj);
+
+            Object.Destroy(persistentObj.gameObject);
+        }
     }
 }
