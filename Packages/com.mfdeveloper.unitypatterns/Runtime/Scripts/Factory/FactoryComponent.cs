@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -228,7 +229,9 @@ namespace UnityPatterns.Factory
                     // Follow the convention for interfaces, that needs to starts with "I" and the ScriptableObject name
                     // should be the same without the "I" (e.g interface "IMyScriptable" and class should be "MyScriptable")
                     // IAudioManager => FMODAudioManager
-                    string path = genericsType.Name.Replace("I", "");
+                    string path = genericsType.Name;
+                    
+                    path = path.Substring(1);
                     instance = (T)(object)Resources.Load(path, genericsType);
 
                     if (instance is null)
@@ -243,6 +246,26 @@ namespace UnityPatterns.Factory
                         }
                     }
                 }
+
+                var bindingFlags = BindingFlags.Instance
+                                    | BindingFlags.FlattenHierarchy
+                                    | BindingFlags.NonPublic
+                                    | BindingFlags.Public;
+
+                var initMethod = instance?.GetType().GetMethod("Init", bindingFlags);
+                if (initMethod != null)
+                {
+                    // Throws internal exceptions inside of Init() method
+                    try
+                    {
+                        initMethod.Invoke(instance, null);
+                    }
+                    catch (TargetInvocationException ex)
+                    {
+                        throw ex.InnerException;
+                    }
+                }
+
             }
 
             return instance;

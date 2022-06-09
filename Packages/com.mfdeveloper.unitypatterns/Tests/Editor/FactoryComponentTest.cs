@@ -95,14 +95,17 @@ namespace UnityPatterns.Editor
             FactoryComponent.Cleanup(myScriptable);
         }
 
-        [Test, Description("Test if can get a ScriptableObject without a bounded .asset file")]
-        public void TestTryGetAScriptableObjectWithoutAsset()
+        [Test, Description("Test if get a ScriptableObject without a bounded .asset file, and calls Init() method")]
+        public void TestTryGetAScriptableObjectWithoutAssetWithInitMethod()
         {
 
             var otherScriptable = FactoryComponent.Get<IOtherScriptable>();
 
             Assert.NotNull(otherScriptable);
             Assert.IsInstanceOf<OtherScriptable>(otherScriptable);
+
+            // Make sure that Init() method was called
+            Assert.AreEqual("value", otherScriptable.MyProperty);
 
             FactoryComponent.Cleanup(otherScriptable);
         }
