@@ -4,7 +4,8 @@ namespace UnityPatterns
 {
     public interface IOtherScriptable
     {
-
+        public string MyProperty { get; set; }
+        void Init();
     }
 
     // Have to follow the class name convention with same name
@@ -12,6 +13,11 @@ namespace UnityPatterns
     [CreateAssetMenu(fileName = "OtherScriptable", menuName = "Data/Samples/OtherScriptable")]
     public class OtherScriptable : ScriptableObject, IOtherScriptable
     {
-        
+        public string MyProperty { get; set; }
+
+        public void Init()
+        {
+            MyProperty = "value";
+        }
     }
 }
