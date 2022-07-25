@@ -1,5 +1,7 @@
 # Unity Patterns
 
+**Unity version:** `2021.3.6f1`
+
 Unity Design Patterns implementations, to shared across projects as an [UPM](https://docs.unity3d.com/Manual/cus-layout.html) package. Below you can see which patterns are implemented until here
 
 ## Unity: Singleton
@@ -88,11 +90,51 @@ public class ExampleScript : MonoBehaviour
 }
 ```
 
+Also, it's possible get a `ScriptableObject` instance from an interface or a class:
+
+```csharp
+// Create a C# interface
+public interface IMyScriptable
+{
+
+}
+
+// Create a MonoBehaviour script that implements the interface above, and attach it to a gameObject in the scene
+[CreateAssetMenu(fileName = "MyScriptable", menuName = "Data/Samples/MyScriptable")]
+public class MyScriptable : ScriptableObject, IMyScriptable
+{
+
+}
+
+// Example to access the a gameObject script that implements an interface
+using System.Linq;
+using UnityEngine;
+using UnityPatterns;
+
+public class ExampleScript : MonoBehaviour
+{
+    public GameObject[] rootsFromDontDestroyOnLoad;
+    void Start()
+    {
+        // Get a ScriptableObject instance from an interface
+        IMyScriptable myScriptable = FactoryComponent.Get<IMyScriptable>();
+
+        // Get a ScriptableObject instance from a class
+        MyScriptable myScriptable = FactoryComponent.Get<MyScriptable>();
+
+
+        Debug.Log($"The component is: {myScriptable.GetType().Name}") // Prints: MyScriptable
+    }
+}
+```
+
 ### Main use cases
 
 - Get singleton managers from all scenes active scenes (including `DontDestroyOnLoad` automatic scene created by Unity).
 
 - Get any **gameObject** from scenes that contains a script that implements an `C#` interface.
+
+- Get a `ScriptableObject` that implements an `C#` interface or a from class reference. The last one is great to get an instance that automatically call `Init()` method.
 
 ## Code templates
 
