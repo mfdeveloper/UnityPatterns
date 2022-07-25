@@ -34,8 +34,7 @@ namespace UnityPatterns.Editor
             var myComponentFromInterface = FactoryComponent.Get<IMyComponent>();
 
             // Lookup the same component, but now by a class.
-            // The only difference here is that a warning is showed in the Unity console
-            // to prefer use Object.GetComponent() methods
+            // Will be returned here from "cache" memory
             var myComponentFromClass = FactoryComponent.Get<MyScript>();
 
             Assert.NotNull(myComponentFromInterface);
@@ -100,6 +99,22 @@ namespace UnityPatterns.Editor
         {
 
             var otherScriptable = FactoryComponent.Get<IOtherScriptable>();
+
+            Assert.NotNull(otherScriptable);
+            Assert.IsInstanceOf<OtherScriptable>(otherScriptable);
+
+            // Make sure that Init() method was called
+            Assert.AreEqual("value", otherScriptable.MyProperty);
+
+            FactoryComponent.Cleanup(otherScriptable);
+        }
+
+        //[Ignore("Skiped ro test FactoryComponent.Get() refactory")]
+        [Test, Description("Test if get a ScriptableObject by class and calls Init() method")]
+        public void TestTryGetAScriptableObjectByClass()
+        {
+
+            var otherScriptable = FactoryComponent.Get<OtherScriptable>();
 
             Assert.NotNull(otherScriptable);
             Assert.IsInstanceOf<OtherScriptable>(otherScriptable);

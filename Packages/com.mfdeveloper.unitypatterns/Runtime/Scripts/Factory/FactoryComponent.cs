@@ -17,6 +17,8 @@ namespace UnityPatterns.Factory
     /// </summary>
     public class FactoryComponent
     {
+        public const string TAG = nameof(FactoryComponent);
+
         // TODO: Add a FactoryComponent.Cleanup() method to remove instances that doesn't exists in the scene anymore
         protected static Dictionary<Type, object> componentsInstances = new Dictionary<Type, object>();
 
@@ -92,21 +94,29 @@ namespace UnityPatterns.Factory
         public static IEnumerable<T> GetAll<T>(bool includeInactive = false)
         {
             var genericsType = typeof(T);
-
-            if (!genericsType.IsInterface && Debug.isDebugBuild)
-            {
-                string warnMsg = $"The generic type {genericsType.Name} isn't an interface. Prefer use GetComponent() or GetComponentInChildren() to improve " +
-                    "performance to lookup by script class.";
-                Debug.LogWarning(warnMsg);
-            }
-
             var gameObjects = GetAllRootObjects();
 
             IEnumerable<T> result = gameObjects.Select(gameObj =>
             {
-                return gameObj.GetComponentInChildren<T>(includeInactive);
+                try
+                {
+                    return gameObj.GetComponentInChildren<T>(includeInactive);
+                }
+                catch (ArgumentException)
+                {
+                    return default;
+                }
             })
             .Where(comp => comp != null);
+
+            if (result.Count() > 0 && !genericsType.IsInterface && Debug.isDebugBuild)
+            {
+                string warnMsg = $"[{TAG}] The generic type \"{genericsType.Name}\" isn't an interface. " +
+                    $"Prefer use GetComponent() or GetComponentInChildren() to improve performance " +
+                    $"to lookup by script class.";
+
+                Debug.LogWarning(warnMsg);
+            }
 
             return result;
         }
@@ -160,8 +170,9 @@ namespace UnityPatterns.Factory
         /// </example>
         public static T Get<T>(bool includeInactive = false)
         {
-            var genericsType = typeof(T);
+            Type genericsType = typeof(T);
 
+            // Lookup the interface/class instance in memory
             var instancePair = componentsInstances.FirstOrDefault(instance => genericsType.IsInstanceOfType(instance.Value));
 
             if (instancePair.Value != null)
@@ -171,10 +182,13 @@ namespace UnityPatterns.Factory
 
             if (!componentsInstances.ContainsKey(genericsType))
             {
-                var instance = GetAll<T>(includeInactive).FirstOrDefault();
-
                 // TODO: [Refactor] Consider move this verification to the "GetAll<>()" method
-                instance = FetchScriptableObject(genericsType, instance);
+                T instance = GetAll<T>(includeInactive).FirstOrDefault();
+
+                if (instance == null)
+                {
+                    instance = FetchScriptableObject<T>(genericsType);
+                }
 
                 if (instance != null)
                 {
@@ -219,53 +233,51 @@ namespace UnityPatterns.Factory
             }
         }
 
-        protected static T FetchScriptableObject<T>(Type genericsType, T instance)
+        protected static T FetchScriptableObject<T>(Type genericsType)
         {
+            T instance = default;
+            string nameOrPath = genericsType.Name;
+
+            if (genericsType.IsInterface && nameOrPath.StartsWith("I", false, CultureInfo.CurrentCulture))
+            {
+                // Looking for a ScriptableObject .asset
+                // Follow the convention for interfaces, that needs to starts with "I" and the ScriptableObject name
+                // should be the same without the "I" (e.g interface "IMyScriptable" and class should be "MyScriptable")
+                // IAudioManager => FMODAudioManager
+                    
+                nameOrPath = nameOrPath.Substring(1);
+                instance = (T)(object)Resources.Load(nameOrPath, genericsType);
+            }
+
             if (instance is null)
             {
-                if (genericsType.IsInterface && genericsType.Name.StartsWith("I", false, CultureInfo.CurrentCulture))
+                var allAssets = Resources.LoadAll(ResourcesAssetsFolder, genericsType);
+                instance = (T)(object)allAssets.FirstOrDefault();
+
+                if (instance is null)
                 {
-                    // Looking for a ScriptableObject .asset
-                    // Follow the convention for interfaces, that needs to starts with "I" and the ScriptableObject name
-                    // should be the same without the "I" (e.g interface "IMyScriptable" and class should be "MyScriptable")
-                    // IAudioManager => FMODAudioManager
-                    string path = genericsType.Name;
-                    
-                    path = path.Substring(1);
-                    instance = (T)(object)Resources.Load(path, genericsType);
-
-                    if (instance is null)
-                    {
-                        var allAssets = Resources.LoadAll(ResourcesAssetsFolder, genericsType);
-                        instance = (T)(object)allAssets.FirstOrDefault();
-
-                        if (instance is null)
-                        {
-                            // A ScriptableObject instance that isn't bound to a .asset file
-                            instance = (T)(object)ScriptableObject.CreateInstance(path);
-                        }
-                    }
+                    // A ScriptableObject instance that isn't bound to a .asset file
+                    instance = (T)(object)ScriptableObject.CreateInstance(nameOrPath);
                 }
+            }
 
-                var bindingFlags = BindingFlags.Instance
-                                    | BindingFlags.FlattenHierarchy
-                                    | BindingFlags.NonPublic
-                                    | BindingFlags.Public;
+            var bindingFlags = BindingFlags.Instance
+                               | BindingFlags.FlattenHierarchy
+                               | BindingFlags.NonPublic
+                               | BindingFlags.Public;
 
-                var initMethod = instance?.GetType().GetMethod("Init", bindingFlags);
-                if (initMethod != null)
+            MethodInfo initMethod = instance?.GetType().GetMethod("Init", bindingFlags);
+            if (initMethod != null)
+            {
+                // Throws internal exceptions inside of Init() method
+                try
                 {
-                    // Throws internal exceptions inside of Init() method
-                    try
-                    {
-                        initMethod.Invoke(instance, null);
-                    }
-                    catch (TargetInvocationException ex)
-                    {
-                        throw ex.InnerException;
-                    }
+                    initMethod.Invoke(instance, null);
                 }
-
+                catch (TargetInvocationException ex)
+                {
+                    throw ex.InnerException;
+                }
             }
 
             return instance;
