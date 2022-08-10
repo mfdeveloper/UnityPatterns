@@ -1,9 +1,11 @@
+using System.Linq;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityPatterns.Singleton;
+using UnityPatterns.Examples;
 
 namespace UnityPatterns
 {
@@ -21,6 +23,7 @@ namespace UnityPatterns
 
         private const string SCENES_FOLDER = "Scenes";
         private const string NEW_SCENE_NAME = "TestScene";
+        private const string PERSISTENT_SCENE_NAME = "SingletonPersistentScene";
 
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
         // `yield return null;` to skip a frame.
@@ -46,7 +49,6 @@ namespace UnityPatterns
             MySingletonPersist singleton = new GameObject().AddComponent<MySingletonPersist>();
 
             var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{NEW_SCENE_NAME}");
-
             yield return new WaitUntil(() => asyncOp.isDone);
 
             var currentScene = SceneManager.GetActiveScene();
@@ -60,6 +62,30 @@ namespace UnityPatterns
             Assert.AreSame(singleton, persistentObj);
 
             Object.Destroy(persistentObj.gameObject);
+        }
+
+        [UnityTest, Description("Test if a singleton remains UNIQUE after loads a new scene")]
+        public IEnumerator TestSingletonShouldPersistUnique()
+        {
+
+            MySingletonUniquePersistent.Instance.MyMethod();
+
+            var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{PERSISTENT_SCENE_NAME}");
+            yield return new WaitUntil(() => asyncOp.isDone);
+
+            var currentScene = SceneManager.GetActiveScene();
+
+            Assert.AreEqual(currentScene.name, PERSISTENT_SCENE_NAME);
+
+            var persistentObjs = Object.FindObjectsOfType<MySingletonUniquePersistent>();
+
+            Assert.AreEqual(persistentObjs.Length, 1);
+            Assert.IsInstanceOf<MySingletonUniquePersistent>(persistentObjs.FirstOrDefault());
+            Assert.AreSame(MySingletonUniquePersistent.Instance, persistentObjs.FirstOrDefault());
+
+            Assert.True(persistentObjs.FirstOrDefault().GameObjReference != null);
+
+            Object.Destroy(persistentObjs.FirstOrDefault().gameObject);
         }
     }
 }

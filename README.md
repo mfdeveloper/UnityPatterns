@@ -1,6 +1,6 @@
 # Unity Patterns
 
-**Unity version:** `2021.3.6f1`
+**Unity version:** `2021.3.7f1`
 
 Unity Design Patterns implementations, to shared across projects as an [UPM](https://docs.unity3d.com/Manual/cus-layout.html) package. Below you can see which patterns are implemented until here
 
@@ -51,6 +51,8 @@ public class GameManager : SingletonPersistent<GameManager> {
   ...
 }
 ```
+
+By default, when a new scene is loaded and there is the same game object with the same script component (e.g `GameManager` above), the previous instance from the previous scene will be destroyed and will remains just one instance under **`DontDestroyOnload`** Unity scene.
 
 ## Unity: Factory Method
 

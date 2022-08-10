@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityPatterns.Util;
+using UnityPatterns.Factory.Attributes;
 
 namespace UnityPatterns.Factory
 {

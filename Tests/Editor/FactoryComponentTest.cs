@@ -1,128 +1,66 @@
+using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
+using UnityPatterns.Singleton;
 using UnityPatterns.Factory;
+using UnityPatterns.Util;
 
-namespace UnityPatterns.Editor
+namespace UnityPatterns
 {
+
     public class FactoryComponentTest
     {
+
+        MyScriptPersistent persistentObj;
+        DontDestroyOnLoadManager dontDestroyOnLoadObj;
 
         internal interface IMyComponent
         {
 
         }
 
-        internal interface IMyAnotherComponent
+        internal class MyScriptPersistent : SingletonPersistent<MyScriptPersistent>, IMyComponent
         {
 
         }
 
-        [FactoryReference]
-        internal class MyScript : MonoBehaviour, IMyComponent, IMyAnotherComponent
+        [SetUp]
+        public void SetUp()
         {
-
+            persistentObj = new GameObject().AddComponent<MyScriptPersistent>();
+            dontDestroyOnLoadObj = new GameObject().AddComponent<DontDestroyOnLoadManager>();
         }
 
-        // A Test behaves as an ordinary method
-        [Test, Description("Test if get a component from a interface properly")]
-        public void TestGetScriptComponent()
+        [TearDown]
+        public void TearDown()
         {
-            var gameObj = new GameObject();
-            var addedGameObj = gameObj.AddComponent<MyScript>();
-
-            // Lookup by an C# Interface
-            var myComponentFromInterface = FactoryComponent.Get<IMyComponent>();
-
-            // Lookup the same component, but now by a class.
-            // Will be returned here from "cache" memory
-            var myComponentFromClass = FactoryComponent.Get<MyScript>();
-
-            Assert.NotNull(myComponentFromInterface);
-            Assert.IsInstanceOf<MyScript>(myComponentFromInterface);
-
-            Assert.NotNull(myComponentFromClass);
-            Assert.IsInstanceOf<MyScript>(myComponentFromClass);
-
-            // Make sure that "cache" references are stored
-            Assert.AreEqual(1, FactoryComponent.ComponentsInstances.Count);
-            Assert.True(FactoryComponent.ContainsInstance(myComponentFromInterface));
-
-            Object.DestroyImmediate(addedGameObj.gameObject);
+            Object.Destroy(persistentObj.gameObject);
+            Object.Destroy(dontDestroyOnLoadObj.gameObject);
         }
 
-        [Test, Description("Test if get a component that implements 2 distinct interfaces")]
-        public void TestTryGetScriptComponentFromDistinctInterface()
+        [UnityTest, Description("Test get all gameObjects from all scenes, including DontDestroyOnLoad Unity scene")]
+        public IEnumerator TestIfComponentIsOnDontDestroyOnloadScene()
         {
-            var gameObj = new GameObject();
-            var addedGameObj = gameObj.AddComponent<MyScript>();
 
-            // Lookup by an C# Interface
+            var rootGameObjects = FactoryComponent.GetAllRootObjects();
+
+            Assert.Greater(rootGameObjects.Count, 0);
+            Assert.Contains(persistentObj.gameObject, rootGameObjects);
+
+            yield return null;
+        }
+
+        [UnityTest, Description("Test if get a component from a gameObject marked with Object.DontDestroyOnLoad")]
+        public IEnumerator TestGetScriptComponentMarkedAsPersistent()
+        {
+
             var myComponent = FactoryComponent.Get<IMyComponent>();
-            var myAnotherComponent = FactoryComponent.Get<IMyAnotherComponent>();
 
             Assert.NotNull(myComponent);
-            Assert.IsInstanceOf<MyScript>(myComponent);
+            Assert.IsInstanceOf<MyScriptPersistent>(myComponent);
 
-            Assert.AreEqual(1, FactoryComponent.ComponentsInstances.Count);
-            Assert.True(FactoryComponent.ContainsInstance(myAnotherComponent));
-
-            Object.DestroyImmediate(addedGameObj.gameObject);
-        }
-
-        [Test, Description("Test get a ScriptableObject that implements a interface with the same name, but that starts with 'I'")]
-        public void TestTryGetAScriptableObjectWithConventionInterfaceName()
-        {
-
-            var myScriptable = FactoryComponent.Get<IMyScriptable>();
-
-            Assert.NotNull(myScriptable);
-            Assert.IsInstanceOf<MyScriptable>(myScriptable);
-
-            FactoryComponent.Cleanup(myScriptable);
-        }
-
-        [Test, Description("Test if can get a ScriptableObject from 'Resources/ScriptableObjects' convention folder")]
-        public void TestTryGetAScriptableObject()
-        {
-
-            var myScriptable = FactoryComponent.Get<IMyManagerScriptable>();
-
-            Assert.NotNull(myScriptable);
-            Assert.IsInstanceOf<MyScriptable>(myScriptable);
-            Assert.AreEqual("CustomManager", ((ScriptableObject) myScriptable).name);
-
-            FactoryComponent.Cleanup(myScriptable);
-        }
-
-        [Test, Description("Test if get a ScriptableObject without a bounded .asset file, and calls Init() method")]
-        public void TestTryGetAScriptableObjectWithoutAssetWithInitMethod()
-        {
-
-            var otherScriptable = FactoryComponent.Get<IOtherScriptable>();
-
-            Assert.NotNull(otherScriptable);
-            Assert.IsInstanceOf<OtherScriptable>(otherScriptable);
-
-            // Make sure that Init() method was called
-            Assert.AreEqual("value", otherScriptable.MyProperty);
-
-            FactoryComponent.Cleanup(otherScriptable);
-        }
-
-        //[Ignore("Skiped ro test FactoryComponent.Get() refactory")]
-        [Test, Description("Test if get a ScriptableObject by class and calls Init() method")]
-        public void TestTryGetAScriptableObjectByClass()
-        {
-
-            var otherScriptable = FactoryComponent.Get<OtherScriptable>();
-
-            Assert.NotNull(otherScriptable);
-            Assert.IsInstanceOf<OtherScriptable>(otherScriptable);
-
-            // Make sure that Init() method was called
-            Assert.AreEqual("value", otherScriptable.MyProperty);
-
-            FactoryComponent.Cleanup(otherScriptable);
+            yield return null;
         }
     }
 }
