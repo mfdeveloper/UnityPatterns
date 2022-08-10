@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityPatterns.Singleton;
 
@@ -21,7 +22,6 @@ namespace UnityPatterns.Util
     /// </remarks>
     public class DontDestroyOnLoadManager : SingletonPersistent<DontDestroyOnLoadManager>
     {
-        protected new bool destroyPreviousInstance = true;
 
         public bool IsSceneLoaded => gameObject.scene.isLoaded;
         public int RootCount => gameObject.scene.rootCount;
@@ -33,6 +33,13 @@ namespace UnityPatterns.Util
 
             // Force replace the default gameObject name from "New Game Object"
             gameObject.name = GetType().Name;
+        }
+
+        public T[] GetObjectsOfType<T>() where T : Component
+        {
+            return RootGameObjects.Select(obj => obj.GetComponent<T>())
+                                  .Where(component => component != null)
+                                  .ToArray();
         }
     }
 }

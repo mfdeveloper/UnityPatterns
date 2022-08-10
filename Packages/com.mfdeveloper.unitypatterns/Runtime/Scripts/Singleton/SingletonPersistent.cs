@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityPatterns.Singleton.Attributes;
 
 namespace UnityPatterns.Singleton
 {
@@ -13,14 +15,39 @@ namespace UnityPatterns.Singleton
     /// <typeparam name="T">Class to use as a singleton</typeparam>
     public class SingletonPersistent<T> : Singleton<T> where T : Component
     {
-        // TODO: [Refactor] Consider use an C# Attribute instead of override fields
-        protected bool destroyPreviousInstance = false;
+
+        public SingletonSettingsAttribute Settings {
+            get
+            {
+                return (SingletonSettingsAttribute) Attribute.GetCustomAttribute(
+                    GetType(), 
+                    typeof(SingletonSettingsAttribute)
+                );
+            }
+        }
 
         protected override void Awake()
         {
-            if (destroyPreviousInstance && _instance != null)
+            if (_instance != null && _instance != this)
             {
-                Destroy(this);
+                if (Settings?.CopySerializedFields == true)
+                {
+                    // TODO: [Feature] Implement copy any [SerializeField] that isn't a gameObject scene reference
+                }
+
+                if (Settings?.DestroyGameObject == PersistentDestroyOrder.NEXT)
+                {
+                    // TODO: [Feature] Always try to identify the [SerializeField] gameObject scene references
+                    // when keep the previous instance and remove the current/next
+                    Destroy(gameObject);
+                    Destroy(this);
+                } else
+                {
+                    Destroy(_instance.gameObject);
+                    Destroy(_instance);
+                }
+
+                _instance = null;
             }
 
             base.Awake();

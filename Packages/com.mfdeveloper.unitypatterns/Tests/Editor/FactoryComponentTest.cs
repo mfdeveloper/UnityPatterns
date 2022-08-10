@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using UnityPatterns.Factory;
+using UnityPatterns.Factory.Attributes;
 
 namespace UnityPatterns.Editor
 {
