@@ -5,6 +5,7 @@
         "ms-dotnettools.csharp",
         "unity.unity-debug",
         "kleber-swf.unity-code-snippets",
-        "cschleiden.vscode-github-actions"
+        "cschleiden.vscode-github-actions",
+        "mads-hartmann.bash-ide-vscode"
     ]
 }
