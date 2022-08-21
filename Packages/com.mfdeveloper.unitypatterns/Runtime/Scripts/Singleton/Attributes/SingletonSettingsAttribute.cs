@@ -9,7 +9,7 @@ namespace UnityPatterns.Singleton.Attributes
     [AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
     public sealed class SingletonSettingsAttribute : Attribute
     {
-        public bool CopySerializedFields { get; set; }
+        public bool CopyFieldsValues { get; set; }
         public PersistentDestroyOrder DestroyGameObject { get; set; } = PersistentDestroyOrder.PREVIOUS;
 
         public SingletonSettingsAttribute()

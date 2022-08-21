@@ -54,6 +54,23 @@ public class GameManager : SingletonPersistent<GameManager> {
 
 By default, when a new scene is loaded and there is the same game object with the same script component (e.g `GameManager` above), the previous instance from the previous scene will be destroyed and will remains just one instance under **`DontDestroyOnload`** Unity scene.
 
+### Persistent Singleton: Optional settings
+
+Optionally, it's possible pass custom configurations to a `SingletonPersistent` script with `SingletonSettings` **_C#_** attribute:
+
+```csharp
+// Here if the same gameObject with the same script 
+// exists in another scene, the next one will be
+// destroyed and the GameObject reference fields
+// will be copied to the previous 
+[SingletonSettings(CopyFieldsValues = true, DestroyGameObject = PersistentDestroyOrder.NEXT)]
+public class GameManager : SingletonPersistent<GameManager> {
+  ...
+}
+```
+
+> For more details, see `Tests/Runtime/Examples` scripts examples
+
 ## Unity: Factory Method
 
 A base Factory Method implementation for Unity. The main use case here is to use this to access a gameObject in the scene that contains a script that implements an `C#` interface:

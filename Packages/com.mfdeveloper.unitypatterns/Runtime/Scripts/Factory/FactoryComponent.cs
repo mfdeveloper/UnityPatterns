@@ -11,7 +11,6 @@ using UnityPatterns.Factory.Attributes;
 
 namespace UnityPatterns.Factory
 {
-
     /// <summary>
     /// Factory method implementation that's retrieves
     /// a specific instance in the scene
@@ -20,7 +19,6 @@ namespace UnityPatterns.Factory
     {
         public const string TAG = nameof(FactoryComponent);
 
-        // TODO: Add a FactoryComponent.Cleanup() method to remove instances that doesn't exists in the scene anymore
         protected static Dictionary<Type, object> componentsInstances = new Dictionary<Type, object>();
 
         public static IReadOnlyDictionary<Type, object> ComponentsInstances => componentsInstances;

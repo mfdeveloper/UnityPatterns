@@ -3,14 +3,14 @@ using UnityEngine;
 namespace UnityPatterns.Singleton
 {
     /// <summary>
-    /// Generic Singleton MonoBehaviour to use with non persistent GameObjects
+    /// Generic Singleton MonoBehaviour target use with non persistent GameObjects
     /// </summary>
     /// <remarks>
     /// <b>Based in:</b><br/>
     /// <a href="https://gist.github.com/mstevenson/4325117">Generic Singleton classes for Unity</a><br/>
     /// <a href="https://www.youtube.com/watch?v=Ova7l0UB26U">Design Pattern: Singletons in Unity</a>
     /// </remarks>
-    /// <typeparam name="T">Class to use as a singleton</typeparam>
+    /// <typeparam name="T">Class target use as a singleton</typeparam>
     public class Singleton<T> : MonoBehaviour where T : Component
     {
         protected static T _instance;

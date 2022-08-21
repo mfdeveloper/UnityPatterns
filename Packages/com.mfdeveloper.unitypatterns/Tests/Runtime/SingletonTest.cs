@@ -64,11 +64,14 @@ namespace UnityPatterns
             Object.Destroy(persistentObj.gameObject);
         }
 
-        [UnityTest, Description("Test if a singleton remains UNIQUE after loads a new scene")]
-        public IEnumerator TestSingletonShouldPersistUnique()
+        [UnityTest]
+        [Description("Test if a singleton remains UNIQUE and keep the previous serialized values after loads a new scene")]
+        public IEnumerator TestSingletonShouldPersistUniqueAndDestroyPreviousInstance()
         {
 
-            MySingletonUniquePersistent.Instance.MyMethod();
+            MySingletonPersistentPrevious.Instance.MyMethod();
+            var previousGameObjectReference = MySingletonPersistentPrevious.Instance.GameObjReference;
+            Object.DontDestroyOnLoad(previousGameObjectReference);
 
             var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{PERSISTENT_SCENE_NAME}");
             yield return new WaitUntil(() => asyncOp.isDone);
@@ -77,15 +80,52 @@ namespace UnityPatterns
 
             Assert.AreEqual(currentScene.name, PERSISTENT_SCENE_NAME);
 
-            var persistentObjs = Object.FindObjectsOfType<MySingletonUniquePersistent>();
+            var persistentObjs = Object.FindObjectsOfType<MySingletonPersistentPrevious>();
+            var persistentInstance = persistentObjs.FirstOrDefault();
 
             Assert.AreEqual(persistentObjs.Length, 1);
-            Assert.IsInstanceOf<MySingletonUniquePersistent>(persistentObjs.FirstOrDefault());
-            Assert.AreSame(MySingletonUniquePersistent.Instance, persistentObjs.FirstOrDefault());
+            Assert.IsInstanceOf<MySingletonPersistentPrevious>(persistentInstance);
+            Assert.AreSame(MySingletonPersistentPrevious.Instance, persistentInstance);
 
-            Assert.True(persistentObjs.FirstOrDefault().GameObjReference != null);
+            Assert.True(persistentInstance.GameObjReference != null);
+            Assert.True(previousGameObjectReference != null);
+            
+            Assert.AreNotSame(previousGameObjectReference, persistentInstance.GameObjReference);
+            Assert.AreEqual(OptionExample.TWO, persistentInstance.Options);
 
-            Object.Destroy(persistentObjs.FirstOrDefault().gameObject);
+            Object.Destroy(persistentInstance.gameObject);
+        }
+
+        [UnityTest]
+        [Description("Test if a singleton remains UNIQUE and keep the next/current serialized values after loads a new scene")]
+        public IEnumerator TestSingletonShouldPersistUniqueAndDestroyNextInstance()
+        {
+
+            MySingletonPersistentNext.Instance.MyMethod();
+            var previousGameObjectReference = MySingletonPersistentNext.Instance.GameObjReference;
+            Object.DontDestroyOnLoad(previousGameObjectReference);
+
+            var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{PERSISTENT_SCENE_NAME}");
+            yield return new WaitUntil(() => asyncOp.isDone);
+
+            var currentScene = SceneManager.GetActiveScene();
+
+            Assert.AreEqual(currentScene.name, PERSISTENT_SCENE_NAME);
+
+            var persistentObjs = Object.FindObjectsOfType<MySingletonPersistentNext>();
+            var persistentInstance = persistentObjs.FirstOrDefault();
+
+            Assert.AreEqual(persistentObjs.Length, 1);
+            Assert.IsInstanceOf<MySingletonPersistentNext>(persistentInstance);
+            Assert.AreSame(MySingletonPersistentNext.Instance, persistentInstance);
+
+            Assert.True(persistentInstance.GameObjReference != null);
+            Assert.True(previousGameObjectReference != null);
+
+            Assert.AreNotSame(previousGameObjectReference, persistentInstance.GameObjReference);
+            Assert.AreEqual(OptionExample.ONE, persistentInstance.Options);
+
+            Object.Destroy(persistentInstance.gameObject);
         }
     }
 }
