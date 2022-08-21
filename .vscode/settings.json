@@ -1,4 +1,7 @@
 {
     "omnisharp.organizeImportsOnFormat": false,
-    "editor.formatOnType": true
+    "editor.formatOnType": true,
+    "github-actions.workflows.pinned.workflows": [
+        ".github/workflows/main.yml"
+    ]
 }
