@@ -1,0 +1,22 @@
+{
+	"name": "com.mfdeveloper.unitypatterns",
+	"displayName": "Unity Design Patterns",
+	"version": "0.1.5",
+	"unity": "2017.4",
+	"description": "Unity Design Patterns based in the book: Hands-On Game Development Patterns with Unity 2019",
+    "documentationUrl": "",
+	"dependencies": {
+		"com.unity.test-framework": "1.1.31"
+	},
+    "author": {
+        "name": "Felipe Ferreira",
+        "url": "https://github.com/mfdeveloper"
+    },
+	"samples": [
+		{
+			"displayName": "ScriptTemplates",
+			"description": "Import and move these templates to your Assets/ScriptTemplates folder",
+			"path": "Samples~/ScriptTemplates"
+		}
+	]
+}
