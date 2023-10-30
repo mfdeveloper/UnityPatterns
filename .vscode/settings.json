@@ -1,0 +1,4 @@
+{
+    "omnisharp.organizeImportsOnFormat": false,
+    "editor.formatOnType": true
+}

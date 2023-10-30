@@ -1,0 +1,16 @@
+{
+    "name": "com.mfdeveloper.unitypatterns.Samples",
+    "rootNamespace": "UnityPatterns.Samples",
+    "references": [
+        "GUID:515b9320c6214bf78140fd1c93d754ba"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

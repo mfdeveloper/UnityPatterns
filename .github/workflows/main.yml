@@ -1,0 +1,41 @@
+name: Unity Package CI
+on:
+  push:
+    branches:
+    - upm-package-embedded
+  repository_dispatch:
+    types: [on-demand-test]
+env:
+  PKG_BRANCH: master
+  PKG_NAME: com.mfdeveloper.unitypatterns
+jobs:
+  split-upm:
+    name: Create upm package branch (force)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set output git tag and commit message
+        id: vars
+        run: ./.github/scripts/functions.sh githubActionsVariables
+      - name: Check output git variables
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+          COMMIT_MESSAGE: ${{ steps.vars.outputs.commit_message }}
+        run: |
+          echo $RELEASE_VERSION
+          echo $COMMIT_MESSAGE
+      - name: Checkout orphan [${{ env.PKG_BRANCH }}] branch
+        run: |
+          git checkout --orphan "$PKG_BRANCH"
+          shopt -s extglob dotglob
+          rm -rf !(Packages|.github|.git|.|..)
+          ls -la ./
+      - name: Move ./Packages content to root
+        run: ./.github/scripts/functions.sh movePackagesFolder
+      - name: Create samples~ and ~documentation folders
+        run: ./.github/scripts/functions.sh push
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+          COMMIT_MESSAGE: ${{ steps.vars.outputs.commit_message }}

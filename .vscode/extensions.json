@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "pkief.material-icon-theme",
+        "fernandoescolar.vscode-solution-explorer",
+        "ms-dotnettools.csharp",
+        "unity.unity-debug",
+        "kleber-swf.unity-code-snippets",
+        "cschleiden.vscode-github-actions"
+    ]
+}
