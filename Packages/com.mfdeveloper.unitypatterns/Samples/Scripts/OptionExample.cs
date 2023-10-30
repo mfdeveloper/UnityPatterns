@@ -1,4 +1,4 @@
-﻿namespace UnityPatterns.Examples
+﻿namespace UnityPatterns.Samples
 {
     public enum OptionExample
     {

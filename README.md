@@ -1,5 +1,7 @@
 # Unity Patterns
 
+![Testing CodeCoverage](./CodeCoverage/Report/badge_linecoverage.svg)
+
 Unity Design Patterns implementations, to shared across projects as an [UPM](https://docs.unity3d.com/Manual/cus-layout.html) package. Below you can see which patterns are implemented until here
 
 ## Unity: Singleton

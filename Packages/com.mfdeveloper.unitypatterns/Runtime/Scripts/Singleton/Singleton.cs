@@ -26,9 +26,11 @@ namespace UnityPatterns.Singleton
 
                     if (_instance == null)
                     {
-                        GameObject obj = new GameObject();
-                        obj.name = typeof(T).Name;
-                    
+                        GameObject obj = new GameObject
+                        {
+                            name = typeof(T).Name
+                        };
+
                         _instance = obj.AddComponent<T>();
                     }
 
@@ -40,7 +42,7 @@ namespace UnityPatterns.Singleton
 
         protected virtual void Awake()
         {
-            if (_instance == null)
+            if (Instance == null && _instance == null)
             {
                 _instance = this as T;
             }

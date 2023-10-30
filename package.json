@@ -1,0 +1,29 @@
+{
+  "name": "com.mfdeveloper.unitypatterns.example-project",
+  "version": "0.0.1",
+  "description": "A example/demo project to develop and test the UnityPatterns plugin scene examples",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server ./Builds/WebGL -c-1 --gzip",
+    "start:ghpage": "http-server ./demo -c-1 --gzip",
+    "test": "dotenv -c local -- cross-var \"$UNITY_EDITOR -runTests -batchmode -nographics -debugCodeOptimization -enableCodeCoverage -testSettingsFile Packages/com.mfdeveloper.unitypatterns/Tests/TestSettings.json -projectPath ./ -testResults ./Tmp/unity-tests-results.xml -logFile ./Logs/Editor.log -executeMethod UnityPatterns.Tests.Editor.CommandLineMethods.TestRunnerReport.RunTests -testPlatform EditMode\"",
+    "test:playmode": "dotenv -c local -- cross-var \"$UNITY_EDITOR -runTests -batchmode -nographics -debugCodeOptimization -enableCodeCoverage -testSettingsFile Packages/com.mfdeveloper.unitypatterns/Tests/TestSettings.json -projectPath ./ -testResults ./Tmp/unity-tests-results.xml -logFile ./Logs/Editor.log -testPlatform PlayMode\"",
+    "test:playmode:android": "dotenv -c local -- cross-var \"$UNITY_EDITOR -runTests -batchmode -nographics -debugCodeOptimization -enableCodeCoverage -testSettingsFile Packages/com.mfdeveloper.unitypatterns/Tests/TestSettings.json -projectPath ./ -testResults ./Tmp/unity-tests-results.xml -logFile ./Logs/Editor.log -testPlatform Android\"",
+    "publish:package": "dotenv bash ./.github/scripts/functions.sh localPublish Packages/com.mfdeveloper.unitypatterns"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mfdeveloper/UnityPatterns.git"
+  },
+  "author": "Felipe Ferreira",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mfdeveloper/UnityPatterns/issues"
+  },
+  "homepage": "https://github.com/mfdeveloper/UnityPatterns#readme",
+  "devDependencies": {
+    "cross-var": "^1.1.0",
+    "dotenv-cli": "^7.3.0",
+    "http-server": "^14.1.1"
+  }
+}

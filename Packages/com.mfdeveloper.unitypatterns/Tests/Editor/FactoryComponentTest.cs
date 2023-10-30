@@ -5,6 +5,7 @@ using UnityPatterns.Factory.Attributes;
 
 namespace UnityPatterns.Editor
 {
+    [TestFixture]
     public class FactoryComponentTest
     {
 
@@ -19,9 +20,21 @@ namespace UnityPatterns.Editor
         }
 
         [FactoryReference]
-        internal class MyScript : MonoBehaviour, IMyComponent, IMyAnotherComponent
+        public class MyScript : MonoBehaviour, IMyComponent, IMyAnotherComponent
         {
 
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            FactoryComponent.Cleanup();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            FactoryComponent.Cleanup();   
         }
 
         // A Test behaves as an ordinary method
@@ -109,8 +122,7 @@ namespace UnityPatterns.Editor
 
             FactoryComponent.Cleanup(otherScriptable);
         }
-
-        //[Ignore("Skiped ro test FactoryComponent.Get() refactory")]
+        
         [Test, Description("Test if get a ScriptableObject by class and calls Init() method")]
         public void TestTryGetAScriptableObjectByClass()
         {

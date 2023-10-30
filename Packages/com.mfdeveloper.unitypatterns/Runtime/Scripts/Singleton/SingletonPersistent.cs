@@ -29,15 +29,10 @@ namespace UnityPatterns.Singleton
         /// Get only to access the <see cref="SingletonSettingsAttribute"/> 
         /// configurations data
         /// </summary>
-        public SingletonSettingsAttribute Settings {
-            get
-            {
-                return (SingletonSettingsAttribute) Attribute.GetCustomAttribute(
-                    GetType(), 
-                    typeof(SingletonSettingsAttribute)
-                );
-            }
-        }
+        public SingletonSettingsAttribute Settings => (SingletonSettingsAttribute) Attribute.GetCustomAttribute(
+            GetType(), 
+            typeof(SingletonSettingsAttribute)
+        );
 
         protected override void Awake()
         {

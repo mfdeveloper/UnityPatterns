@@ -13,7 +13,7 @@ namespace UnityPatterns.Editor
 
     }
 
-    [CreateAssetMenu(fileName = "MyScriptable", menuName = "Data/Samples/MyScriptable")]
+    [CreateAssetMenu(fileName = "MyScriptable", menuName = "UnityPatterns/Assets/Test/MyScriptable")]
     public class MyScriptable : ScriptableObject, IMyScriptable, IMyManagerScriptable
     {
         

@@ -1,14 +1,14 @@
-using UnityEngine;
-using UnityPatterns.Singleton.Attributes;
+﻿using UnityEngine;
 using UnityPatterns.Singleton;
+using UnityPatterns.Singleton.Attributes;
 
-namespace UnityPatterns.Examples
+namespace UnityPatterns.Samples
 {
     /// <summary>
     /// An usage example of <see cref="SingletonPersistent{T}"/> implementation
     /// </summary>
-    [SingletonSettings(CopyFieldsValues = true)]
-    public class MySingletonPersistentNext : SingletonPersistent<MySingletonPersistentNext>
+    [SingletonSettings(CopyFieldsValues = true, DestroyGameObject = PersistentDestroyOrder.NEXT)]
+    public class MySingletonPersistentPrevious : SingletonPersistent<MySingletonPersistentPrevious>
     {
 
         [SerializeField]
@@ -21,7 +21,7 @@ namespace UnityPatterns.Examples
         public OptionExample Options => optionsEnumExample;
 
         /// <summary>
-        /// Duplication of <see cref="MySingletonPersistentPrevious.Awake"/> here to avoid
+        /// Duplication of <see cref="MySingletonPersistentNext.Awake"/> here to avoid
         /// a deeper inheritance of <seealso cref="SingletonPersistent{T}"/>
         /// </summary>
         protected override void Awake()
@@ -30,7 +30,7 @@ namespace UnityPatterns.Examples
             // This is used for unit testing verifications
             AddGameObjectToScene();
 
-            optionsEnumExample = OptionExample.ONE;
+            optionsEnumExample = OptionExample.TWO;
 
             base.Awake();
         }
@@ -39,14 +39,20 @@ namespace UnityPatterns.Examples
         {
             Debug.Log($"Called from: \"{GetType().Name}\" singleton");
         }
+
         private void AddGameObjectToScene()
         {
-            if (gameObjReference == null)
+            if (gameObjReference != null)
             {
-                var obj = new GameObject();
-                obj.name = nameof(gameObjReference);
-                gameObjReference = obj;
+                return;
             }
+            
+            var obj = new GameObject
+            {
+                name = nameof(gameObjReference)
+            };
+                
+            gameObjReference = obj;
         }
     }
 }

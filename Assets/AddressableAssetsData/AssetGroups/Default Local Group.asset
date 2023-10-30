@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Default Local Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Default Local Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: def1e6412037d854cbaae872c6308889
+  m_SerializeEntries:
+  - m_GUID: 3c5b062a8b732d2459dc28b5aee2b39d
+    m_Address: Scriptables
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 95c9cfe87d11ba94ab19b02a05242e1e
+    m_Address: Scriptables/StrategyAsset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ScriptableStrategy
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5b70635afa8043ef89025d847a04d4ba
+    m_Address: AddressableTests
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7c6a9c00aee4a67489945ca90c646317
+    m_Address: AddressableTests/Data
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - scriptable-data
+    - ScriptableData
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 3d5cb0f164a8cce4693e16fb8fef4b92, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: b7166e59ba6512f4aa10070ef8dcec00, type: 2}
+    - {fileID: 11400000, guid: dc0759eb310eaf74fa9327d9750c0249, type: 2}

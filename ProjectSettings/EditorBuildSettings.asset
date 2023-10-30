@@ -6,9 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/TestScene.unity
-    guid: a4f4fd2e7271e9f45a5f9bbd873ec7cb
-  - enabled: 1
-    path: Assets/Scenes/SingletonPersistentScene.unity
+    path: Packages/com.mfdeveloper.unitypatterns/Samples/SingletonPersistent/SingletonPersistent.unity
     guid: 13a8fd4d6a336874f90f7f00fd2d833f
-  m_configObjects: {}
+  - enabled: 1
+    path: Packages/com.mfdeveloper.unitypatterns/Samples/SingletonPersistent/Test.unity
+    guid: a4f4fd2e7271e9f45a5f9bbd873ec7cb
+  m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: ebd1235d3f57eaa49920784934822b0c, type: 2}

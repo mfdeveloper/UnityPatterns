@@ -12,6 +12,7 @@ namespace UnityPatterns.Editor
     /// <b>Reference:</b>
     /// <a href="https://www.raywenderlich.com/9454-introduction-to-unity-unit-testing">Introduction To Unity Unit Testing</a>
     /// </remarks>
+    [TestFixture]
     public class SingletonSimpleTest
     {
 

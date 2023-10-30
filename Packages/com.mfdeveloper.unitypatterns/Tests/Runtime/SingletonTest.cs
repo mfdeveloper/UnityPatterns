@@ -1,19 +1,21 @@
+using System.IO;
 using System.Linq;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityPatterns.Samples;
 using UnityPatterns.Singleton;
-using UnityPatterns.Examples;
 
-namespace UnityPatterns
+namespace UnityPatterns.Tests
 {
     public class MySingletonPersist : SingletonPersistent<MySingletonPersist>
     {
 
     }
 
+    [TestFixture]
     public class SingletonTest
     {
         internal class MySingleton : Singleton<MySingleton>
@@ -21,16 +23,54 @@ namespace UnityPatterns
 
         }
 
-        private const string SCENES_FOLDER = "Scenes";
-        private const string NEW_SCENE_NAME = "TestScene";
-        private const string PERSISTENT_SCENE_NAME = "SingletonPersistentScene";
+        private const string SAMPLES_FOLDER = "Samples";
+        private const string PACKAGE_PATH = "Packages/com.mfdeveloper.unitypatterns";
+        private const string NEW_SCENE_NAME = "Test";
+        private const string PERSISTENT_SCENE_NAME = "SingletonPersistent";
+
+        private string samplesScenesFolder = string.Empty;
+        private string persistentScenePath = string.Empty;
+        private string newScenePath = string.Empty;
+
+        [OneTimeSetUp]
+        public void SetUp()
+        {
+            SetupPaths();
+        }
+        
+        private void SetupPaths()
+        {
+            /*
+             * PS: When running tests on mobile platforms (e.g Android), should load scenes
+             *      by name only (e.g `SceneManager.LoadSceneAsync("SceneName")`);
+             */
+            if (Application.isMobilePlatform)
+            {
+                persistentScenePath = PERSISTENT_SCENE_NAME;
+                newScenePath = NEW_SCENE_NAME;
+            }
+            else
+            {
+                if (Directory.Exists($"{PACKAGE_PATH}/{SAMPLES_FOLDER}"))
+                {
+                    samplesScenesFolder = $"{PACKAGE_PATH}/{SAMPLES_FOLDER}/{PERSISTENT_SCENE_NAME}";
+                }
+                else if (Directory.Exists($"{PACKAGE_PATH}/{SAMPLES_FOLDER}~"))
+                {
+                    samplesScenesFolder = $"{PACKAGE_PATH}/{SAMPLES_FOLDER}~/{PERSISTENT_SCENE_NAME}";
+                }
+
+                persistentScenePath = $"{samplesScenesFolder}/{PERSISTENT_SCENE_NAME}";
+                newScenePath = $"{samplesScenesFolder}/{NEW_SCENE_NAME}";
+            }
+        }
 
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
         // `yield return null;` to skip a frame.
         [UnityTest, Description("Test if can get a singleton component in the scene")]
         public IEnumerator TestIfSingletonInstanceExistsInTheScene()
         {
-            var _ = new GameObject().AddComponent<MySingleton>();
+            _ = new GameObject().AddComponent<MySingleton>();
             var singletonInScene = Object.FindObjectOfType<MySingleton>();
 
             Assert.IsInstanceOf<MySingleton>(singletonInScene);
@@ -39,16 +79,30 @@ namespace UnityPatterns
             yield return null;
         }
 
-
+        /// <summary>
+        /// Test that loads a new scene asynchronously, wait and check if an object persists among scenes 
+        /// </summary>
+        /// <remarks>
+        /// <b> References </b>
+        /// <br/>
+        /// <ul>
+        ///     <li>
+        ///         <a href="https://docs.unity3d.com/Manual/upm-assets.html">
+        ///         Accessing package assets
+        ///         </a>
+        ///     </li>
+        /// </ul>
+        /// </remarks>
+        /// <returns></returns>
         [UnityTest, Description("Test if a singleton remains active after loads a new scene")]
         public IEnumerator TestSingletonShouldPersistAmongScenes()
         {
             // Use the Assert class to test conditions.
             // Use yield to skip a frame.
 
-            MySingletonPersist singleton = new GameObject().AddComponent<MySingletonPersist>();
+            var singleton = new GameObject().AddComponent<MySingletonPersist>();
 
-            var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{NEW_SCENE_NAME}");
+            var asyncOp = SceneManager.LoadSceneAsync(newScenePath);
             yield return new WaitUntil(() => asyncOp.isDone);
 
             var currentScene = SceneManager.GetActiveScene();
@@ -73,7 +127,7 @@ namespace UnityPatterns
             var previousGameObjectReference = MySingletonPersistentPrevious.Instance.GameObjReference;
             Object.DontDestroyOnLoad(previousGameObjectReference);
 
-            var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{PERSISTENT_SCENE_NAME}");
+            var asyncOp = SceneManager.LoadSceneAsync(persistentScenePath);
             yield return new WaitUntil(() => asyncOp.isDone);
 
             var currentScene = SceneManager.GetActiveScene();
@@ -87,8 +141,8 @@ namespace UnityPatterns
             Assert.IsInstanceOf<MySingletonPersistentPrevious>(persistentInstance);
             Assert.AreSame(MySingletonPersistentPrevious.Instance, persistentInstance);
 
-            Assert.True(persistentInstance.GameObjReference != null);
-            Assert.True(previousGameObjectReference != null);
+            Assert.True(persistentInstance != null && persistentInstance.GameObjReference != null);
+            Assert.IsNotNull(previousGameObjectReference);
             
             Assert.AreNotSame(previousGameObjectReference, persistentInstance.GameObjReference);
             Assert.AreEqual(OptionExample.TWO, persistentInstance.Options);
@@ -105,7 +159,7 @@ namespace UnityPatterns
             var previousGameObjectReference = MySingletonPersistentNext.Instance.GameObjReference;
             Object.DontDestroyOnLoad(previousGameObjectReference);
 
-            var asyncOp = SceneManager.LoadSceneAsync($"{SCENES_FOLDER}/{PERSISTENT_SCENE_NAME}");
+            var asyncOp = SceneManager.LoadSceneAsync(persistentScenePath);
             yield return new WaitUntil(() => asyncOp.isDone);
 
             var currentScene = SceneManager.GetActiveScene();
@@ -119,7 +173,7 @@ namespace UnityPatterns
             Assert.IsInstanceOf<MySingletonPersistentNext>(persistentInstance);
             Assert.AreSame(MySingletonPersistentNext.Instance, persistentInstance);
 
-            Assert.True(persistentInstance.GameObjReference != null);
+            Assert.True(persistentInstance != null && persistentInstance.GameObjReference != null);
             Assert.True(previousGameObjectReference != null);
 
             Assert.AreNotSame(previousGameObjectReference, persistentInstance.GameObjReference);
