@@ -1,4 +1,5 @@
 {
     "omnisharp.organizeImportsOnFormat": false,
-    "editor.formatOnType": true
+    "editor.formatOnType": true,
+    "terminal.integrated.defaultProfile.windows": "Git Bash"
 }

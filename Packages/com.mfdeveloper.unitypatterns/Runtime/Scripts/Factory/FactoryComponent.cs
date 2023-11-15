@@ -47,7 +47,7 @@ namespace UnityPatterns.Factory
             Application.quitting += OnDestroy;
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
             if (scriptableObjects.Length == 0)

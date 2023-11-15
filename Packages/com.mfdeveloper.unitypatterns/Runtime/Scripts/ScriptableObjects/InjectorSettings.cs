@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Diagnostics.CodeAnalysis;
+using UnityEngine;
 
 namespace UnityPatterns.ScriptableObjects
 {
@@ -23,9 +24,10 @@ namespace UnityPatterns.ScriptableObjects
 
         public static string SettingsDataPath => $"{BASE_RESOURCES_PATH}/{SETTINGS_DATA_FOLDER}";
         
+        [SuppressMessage("ReSharper", "RedundantAssignment")]
         public static InjectorSettings Load()
         {
-            InjectorSettings settings;
+            InjectorSettings settings = null;
             
             #if UNITY_EDITOR
                         
