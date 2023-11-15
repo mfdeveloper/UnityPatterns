@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
-using System.Collections;
 using System.Reflection;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
@@ -14,6 +14,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityPatterns.Util;
 using UnityPatterns.Extensions;
 using UnityPatterns.Factory.Attributes;
+using UnityPatterns.ScriptableObjects;
 
 namespace UnityPatterns.Factory
 {
@@ -21,17 +22,22 @@ namespace UnityPatterns.Factory
     /// Factory method implementation that's retrieves
     /// a specific instance in the scene
     /// </summary>
+    /// <remarks>
+    /// TODO: <b>[Improvement]</b> Use <see cref="Injection.Injector"/> component class instead of this one, in order to resolve dependencies
+    /// </remarks>
     public static class FactoryComponent
     {
         public const string TAG = nameof(FactoryComponent);
 
         private static Dictionary<Type, object> componentsInstances = new();
+        private static ScriptableObject[] scriptableObjects = {};
+        private static InjectorSettings injectorSettings;
 
         /// <summary>
         /// Resources folder that are the .asset files to load
         /// <see cref="ScriptableObject"/> singletons
         /// </summary>
-        public static string ResourcesAssetsFolder { get; set; } = "ScriptableObjects";
+        public static string ResourcesAssetsFolder { get; private set; } = "ScriptableObjects";
 
         static FactoryComponent()
         {
@@ -39,6 +45,28 @@ namespace UnityPatterns.Factory
             
             SceneManager.sceneUnloaded += OnDestroy;
             Application.quitting += OnDestroy;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        public static void Initialize()
+        {
+            if (scriptableObjects.Length == 0)
+            {
+                scriptableObjects = Resources.FindObjectsOfTypeAll<ScriptableObject>();
+            }
+
+            LoadSettings();
+        }
+        
+        private static void LoadSettings()
+        {
+            if (injectorSettings == null)
+            {
+                injectorSettings = InjectorSettings.Load();
+            }
+            
+            // Populate fields from "InjectorSettings" ScriptableObject data
+            ResourcesAssetsFolder = injectorSettings.resourcesAssetsFolder;
         }
 
         // TODO: [Refactor] Consider move this method to a "Util" scene class 
@@ -154,7 +182,12 @@ namespace UnityPatterns.Factory
         /// </summary>
         /// <remarks>
         /// The component instances are stored in a "cache" to improve lookup performance,
-        /// and don't perform a new search in the scene for each call of <see cref="Get{T}(bool)"/> 
+        /// and don't perform a new search in the scene for each call of <see cref="Get{T}(bool)"/>
+        /// <br/><br/>
+        /// <b> WARNING:</b>
+        /// <br/>
+        /// Prefer use the async loading method <see cref="GetAsync{T}"/>. Use this one only if you REALLY need
+        /// loading dependencies <i>synchronously</i>.
         /// </remarks>
         /// <example>
         /// <code>
@@ -193,7 +226,6 @@ namespace UnityPatterns.Factory
         /// }
         /// </code>
         /// </example>
-        [Obsolete("Prefer use the async loading method FactoryComponent.GetAsync<T>()")]
         public static T Get<T>(bool includeInactive = false)
         {
             Type genericsType = typeof(T);
@@ -268,8 +300,8 @@ namespace UnityPatterns.Factory
                         genericsType,
                         cancellationToken
                     );
-
-                    if (IsCanceled())
+                    
+                    if (cancellationToken.IsCanceled(logTag: TAG))
                     {
                         return instance;
                     }
@@ -293,21 +325,6 @@ namespace UnityPatterns.Factory
 
             taskCompletionSource?.SetResult(default);
             return (T)(object) null;
-            
-            bool IsCanceled()
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    if (Debug.isDebugBuild)
-                    {
-                        Debug.Log($"[{TAG}] Get async asset was CANCELED");
-                    }
-
-                    return true;
-                }
-
-                return false;
-            }
         }
         
         public static AsyncOperationHandle<T> GetAsync<T>(
@@ -392,7 +409,20 @@ namespace UnityPatterns.Factory
             }
         }
 
-        [Obsolete("Prefer use FactoryComponent.FetchScriptableAddressable<T>() method")]
+        /// <summary>
+        /// Find and load a <see cref="ScriptableObject"/> synchronously using <see cref="Resources"/> class
+        /// </summary>
+        /// <remarks>
+        /// <b> WARNING:</b>
+        /// <br/>
+        /// Prefer use <see cref="FetchScriptableAsync{T}"/> method. Use this one only if you REALLY need
+        /// loading dependencies <i>synchronously</i>.
+        /// </remarks>
+        /// <param name="genericsType"></param>
+        /// <param name="strictInstance"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         private static T FetchScriptableObject<T>(Type genericsType, bool strictInstance = true)
         {
             T instance = default;
@@ -416,19 +446,36 @@ namespace UnityPatterns.Factory
 
             if (!string.IsNullOrWhiteSpace(nameOrPath))
             {
-                instance = (T)(object)Resources.Load(nameOrPath, genericsType);
-            }
+                instance = (T)(object)Resources.Load($@"{ResourcesAssetsFolder}/{nameOrPath}", genericsType);
 
-            if (instance is null)
-            {
-                var allAssets = Resources.LoadAll(ResourcesAssetsFolder, genericsType);
-                instance = (T)(object)allAssets.FirstOrDefault();
-
-                if (instance is null && strictInstance)
+                if (instance is null && scriptableObjects.Any())
                 {
-                    // A ScriptableObject instance that isn't bound to a .asset file
-                    instance = (T)(object)ScriptableObject.CreateInstance(nameOrPath);
+                    instance = (T)(object) scriptableObjects.FirstOrDefault(scriptable => scriptable.name.EndsWith(nameOrPath));
                 }
+                
+                if (instance is null)
+                {
+                    try
+                    {
+                        // PS: This will be called only as a fallback only when "Resources.FindObjectsOfTypeAll<ScriptableObject>()"
+                        // fails for any reason.
+                        var allAssets = Resources.LoadAll(ResourcesAssetsFolder, genericsType);
+                        instance = (T)(object)allAssets.FirstOrDefault();
+                    }
+                    catch (Exception exception)
+                    {
+                        if (Debug.isDebugBuild)
+                        {
+                            Debug.LogWarning($"[{TAG}] {exception.GetType().Name} => {exception.Message}");
+                        }
+                    }
+                }
+            }
+            
+            if (instance is null && strictInstance)
+            {
+                // A ScriptableObject instance that isn't bound to a .asset file
+                instance = (T)(object)ScriptableObject.CreateInstance(nameOrPath);
             }
 
             const BindingFlags bindingFlags = BindingFlags.Instance
@@ -506,20 +553,11 @@ namespace UnityPatterns.Factory
                     cancellationToken
                 );
                 
-                if (IsCanceled())
+                if (cancellationToken.IsCanceled(logTag: TAG))
                 {
                     return instance;
                 }
             }
-
-            // if (cancellationToken.IsCancellationRequested)
-            // {
-            //     if (Debug.isDebugBuild)
-            //     {
-            //         Debug.Log($"[{TAG}] Fetch async asset was CANCELED");
-            //     }
-            //     return instance;
-            // }
 
             try
             {
@@ -530,7 +568,8 @@ namespace UnityPatterns.Factory
                     var assetOp = Addressables.LoadAssetAsync<T>(addressableAddress);
 
                     instance = await assetOp.Task;
-                    if (IsCanceled())
+                    
+                    if (cancellationToken.IsCanceled(logTag: TAG))
                     {
                         return instance;
                     }
@@ -565,7 +604,7 @@ namespace UnityPatterns.Factory
                             cancellationToken
                         );
                         
-                        if (IsCanceled())
+                        if (cancellationToken.IsCanceled(logTag: TAG))
                         {
                             return instance;
                         }
@@ -607,7 +646,7 @@ namespace UnityPatterns.Factory
                                 cancellationToken
                             );
                             
-                            if (IsCanceled())
+                            if (cancellationToken.IsCanceled(logTag: TAG))
                             {
                                 return (T)(object) null;
                             }
@@ -615,13 +654,9 @@ namespace UnityPatterns.Factory
 
                         if (instance is null)
                         {
-                            // Fallback here to Resources.Load()
+                            // Fallback here to "Resources.Load()"
                             // TODO: [Feature] Replace that fallback to a Resources.LoadAsync<>() Coroutine call
-                            #pragma warning disable CS0618 // Type or member is obsolete
-                            
                             instance = FetchScriptableObject<T>(genericsType, strictInstance);
-                            
-                            #pragma warning restore CS0618 // Type or member is obsolete
                         }
                     }
                 }
@@ -655,13 +690,45 @@ namespace UnityPatterns.Factory
 
             if (instance is not null)
             {
-                MethodInfo initMethod = instance.GetType().GetMethod("Init", bindingFlags);
+                var instanceType = instance.GetType();
+                MethodInfo initMethod = instanceType.GetMethod("Init", bindingFlags);
                 if (initMethod is not null)
                 {
                     // Throws internal exceptions inside of Init() method
                     try
                     {
-                        initMethod.Invoke(instance, null);
+                        // Await: Test if the result of "Init()" method is a Task
+                        // and await for the execution
+                        var invokeResult = initMethod.Invoke(instance, null);
+                        if (invokeResult is Task task)
+                        {
+                            await task;
+                        }
+                    }
+                    catch (TargetInvocationException ex)
+                    {
+                        if (ex.InnerException != null)
+                        {
+                            throw ex.InnerException;
+                        }
+                    }
+                }
+                
+                initMethod = instanceType.GetMethod("InitAsync", bindingFlags)
+                             ?? instanceType.GetMethod("InitTask", bindingFlags);
+                if (initMethod is not null)
+                {
+                    try
+                    {
+                        if (typeof(Task).IsAssignableFrom(initMethod.ReturnType))
+                        {
+                            var task = (Task) initMethod.Invoke(instance, null);
+                            await task;
+                        }
+                        else if (Debug.isDebugBuild)
+                        {
+                            Debug.LogError($"[{TAG}] The async method '{initMethod.Name}' should return Task or Task<T>");
+                        }
                     }
                     catch (TargetInvocationException ex)
                     {
@@ -674,21 +741,6 @@ namespace UnityPatterns.Factory
             }
 
             return instance;
-
-            bool IsCanceled()
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    if (Debug.isDebugBuild)
-                    {
-                        Debug.Log($"[{TAG}] Fetch async asset was CANCELED");
-                    }
-
-                    return true;
-                }
-
-                return false;
-            }
         }
         
         public static AsyncOperationHandle<T> FetchScriptableAsync<T>(

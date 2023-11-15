@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 using Object = UnityEngine.Object;
@@ -26,7 +27,6 @@ namespace UnityPatterns.Extensions
             var typeLookup = typeof(T);
             var sources = taskCompletions.GetOrCreateValue(unityObj);
             
-            // sources.ToDictionary(pair => pair.Key, pair => (TaskCompletionSource<T>) pair.Value);
             if (sources.TryGetValue(typeLookup, out var completionSource))
             {
                 if (completionSource is TaskCompletionSource<T> value)
@@ -35,7 +35,7 @@ namespace UnityPatterns.Extensions
                 }
             }
 
-            TaskCompletionSource<T> newSource = CreateTaskCompletion<T>(state, creationOptions);
+            var newSource = CreateTaskCompletion<T>(state, creationOptions);
             
             sources.Add(typeLookup, newSource);
             taskCompletions.AddOrUpdate(unityObj, sources);
@@ -48,13 +48,8 @@ namespace UnityPatterns.Extensions
             var completionSource = GetTaskCompletion<T>(unityObj);
             return completionSource.Task;
         }
-
-        public static Dictionary<Type, object> GetAllTaskCompletions(
-            this Object unityObj)
-        {
-            return taskCompletions.GetOrCreateValue(unityObj);
-        }
         
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
         public static Dictionary<Type, TaskCompletionSource<T>> GetAllTaskCompletions<T>(
             this Object unityObj)
         {
