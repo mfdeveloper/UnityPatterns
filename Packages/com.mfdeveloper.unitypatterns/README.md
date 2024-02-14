@@ -1,8 +1,136 @@
 # Unity Patterns
 
+![Testing CodeCoverage](../../CodeCoverage/Report/badge_linecoverage.svg)
+
 **Unity version:** `2021.3.7f1`
 
 Unity Design Patterns implementations, to shared across projects as an [UPM](https://docs.unity3d.com/Manual/cus-layout.html) package. Below you can see which patterns are implemented until here
+
+## Installation
+
+Install the [OpenUPM](https://openupm.com) CLI and add the [com.mfdeveloper.unitypatterns](https://openupm.com/packages/com.mfdeveloper.unitypatterns) package
+
+```bash
+
+# Install node (e.g using NVM)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+# "node" is an alias for the latest version
+nvm install node
+# You can list available versions using "ls-remote"
+nvm ls-remote
+# or 16.3.0, 12.22.1, etc
+nvm install 14.7.0
+
+# Install openupm-cli
+npm install -g openupm-cli
+
+# Go to your Unity project directory
+cd YOUR_UNITY_PROJECT_DIR
+
+# Install package: com.mfdeveloper.unitypatterns
+openupm add com.mfdeveloper.unitypatterns
+
+```
+
+### OpenUPM package
+
+Follow the installation guide from: [openupm/com.mfdeveloper.unitypatterns](https://openupm.com/packages/com.mfdeveloper.unitypatterns)
+
+Alternatively, merge the snippet below to [Packages/manifest.json](https://docs.unity3d.com/Manual/upm-manifestPrj.html) manually
+
+```jsonc
+{
+    // Verifiy which is the latest tag in this repository
+    "dependencies": {
+        "com.mfdeveloper.unitypatterns": "<LATEST_VERSION>"
+    },
+    // If you already have the openupm registry,
+    // only add this package to "scopes" array
+    "scopedRegistries": [
+        {
+            "name": "package.openupm.com",
+            "url": "https://package.openupm.com",
+            "scopes": [
+                "com.mfdeveloper.unitypatterns"
+            ]
+        }
+    ]
+}
+```
+
+## Github package
+
+1. Generate an **access token** on your Github account, following the guide: [Creating a personal access token (classic)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic).
+
+2. Add a **`$HOME/.upmconfig.toml`** file with the TOKEN to authenticate on registry
+
+    ```toml
+    [npmAuth."https://npm.pkg.github.com/@mfdeveloper"]
+    # Generate the token from your github profile:
+    # https://github.com/settings/tokens
+    _authToken = "<TOKEN-VALUE>"
+    email = "<YOUR_EMAIL>"
+    alwaysAuth = true
+    ```
+
+    > **WARNING:** _GitHub/Gitlab_ Packages registry always requires authentication. For **_private_** and **_public_** packages. If you don't have a Github account, or won't create a TOKEN, try use the [openupm](#openupm-package) package above.
+
+    ![Github package authentication](./Images/github-package-auth-require-token.jpg)
+
+3. Configure the scope **registry** and **dependency** in your Unity project `Packages/manifest.json`
+
+    ```jsonc
+    {
+        "dependencies": {
+            // Verifiy which is the latest tag in this repository
+            "com.mfdeveloper.unitypatterns": "<LATEST_VERSION>"
+        },
+        "scopedRegistries": [
+            {
+                "name": "Github Packages: mfdeveloper",
+                "url": "https://npm.pkg.github.com/@mfdeveloper",
+                "scopes": [
+                    "com.mfdeveloper.unitypatterns"
+                ]
+            }
+        ]
+    }
+    ```
+
+## Git dependency
+
+The minimal checked Unity Version is **`2019.3.*`** LTS
+
+Open Package Manager and "Add package from git url..." using next string:
+
+- `https://github.com/mfdeveloper/UnityPatterns.git#upm`
+
+Or use the latest git release/tag:
+
+- `https://github.com/mfdeveloper/UnityPatterns.git#<LATEST_VERSION>`
+
+You also can edit `Packages/manifest.json` manually, just add:
+
+```json
+{
+  "dependencies": {
+    "com.mfdeveloper.unitypatterns": "https://github.com/mfdeveloper/UnityPatterns.gitt#<LATEST_VERSION>"
+    }
+}
+
+```
+
+## Local dependency (Embedded package)
+
+1. Download or clone this repo from `[upm]` branch
+
+    ```bash
+
+    git clone -b upm https://github.com/<repo_url>.git
+    
+    ```
+
+2. Copy the content of root folder into your project's `Packages/<PACKAGE_NAME>` folder.
 
 ## Unity: Singleton
 
