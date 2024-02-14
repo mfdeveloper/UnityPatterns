@@ -1,0 +1,6 @@
+using UnityPatterns;
+
+public class #SCRIPTNAME# : SingletonPersistent<#SCRIPTNAME#>
+{
+#NOTRIM#
+}
